@@ -23,8 +23,10 @@ public class Map extends JPanel {
     private final int HUMAN_DOT = 1;
     private final int AI_DOT = 2;
     private final int EMPTY_DOT = 0;
-    private int fieldSizeX = 3;
-    private int fieldSizeY = 3;
+    private int fieldSizeX = 5;
+    private int fieldSizeY = 5;
+    private int modeGame = 0;
+    private int counter = 4;
     private char[][] field;
     private int panelWidth;
     private int panelHeight;
@@ -33,6 +35,7 @@ public class Map extends JPanel {
 
     private boolean isGameOver;
     private boolean isInitialized;
+
     Map() {
         setBackground(Color.WHITE);
         addMouseListener(new MouseAdapter() {
@@ -72,8 +75,13 @@ public class Map extends JPanel {
         }
         return false;
     }
+
     void startNewGame(int mode, int fSzX, int fSzY, int wLen) {
-        System.out.printf("Mode: %d;\nSize: x=%d, y=%d;\nWin Length: %d\n", mode, fSzX, fSzY, wLen);
+//        System.out.printf("Mode: %d;\nSize: x=%d, y=%d;\nWin Length: %d\n", mode, fSzX, fSzY, wLen);
+        fieldSizeX = fSzX;
+        fieldSizeY = fSzY;
+        counter = wLen;
+        modeGame = mode;
         initMap();
         isGameOver = false;
         isInitialized = true;
@@ -90,15 +98,15 @@ public class Map extends JPanel {
         if (!isInitialized) return;
         panelWidth = getWidth();
         panelHeight = getHeight();
-        cellHeight = panelHeight / 3;
-        cellWidth = panelWidth / 3;
+        cellHeight = panelHeight / fieldSizeX;
+        cellWidth = panelWidth / fieldSizeY;
 
         g.setColor(Color.BLACK);
-        for (int h = 0; h < 3; h++) {
+        for (int h = 0; h < fieldSizeX; h++) {
             int y = h * cellHeight;
             g.drawLine(0, y, panelWidth, y);
         }
-        for (int w = 0; w < 3; w++) {
+        for (int w = 0; w < fieldSizeY; w++) {
             int x = w * cellWidth;
             g.drawLine(x, 0, x, panelHeight);
         }
@@ -134,11 +142,14 @@ public class Map extends JPanel {
         g.setFont(new Font("Times new roman", Font.BOLD, 48));
         switch (gameOverType) {
             case STATE_DRAW:
-                g.drawString(MSG_DRAW, 180, getHeight() / 2); break;
+                g.drawString(MSG_DRAW, 180, getHeight() / 2);
+                break;
             case STATE_WIN_AI:
-                g.drawString(MSG_WIN_AI, 20, getHeight() / 2); break;
+                g.drawString(MSG_WIN_AI, 20, getHeight() / 2);
+                break;
             case STATE_WIN_HUMAN:
-                g.drawString(MSG_WIN_HUMAN, 70, getHeight() / 2); break;
+                g.drawString(MSG_WIN_HUMAN, 70, getHeight() / 2);
+                break;
             default:
                 throw new RuntimeException("Unexpected gameOver state: " + gameOverType);
         }
@@ -148,8 +159,8 @@ public class Map extends JPanel {
      * TicTacToe game logic
      */
     private void initMap() {
-        fieldSizeX = 3;
-        fieldSizeY = 3;
+//        fieldSizeX = 5;
+//        fieldSizeY = 5;
         field = new char[fieldSizeY][fieldSizeY];
         for (int i = 0; i < fieldSizeX; i++) {
             for (int j = 0; j < fieldSizeY; j++) {
@@ -177,18 +188,90 @@ public class Map extends JPanel {
 
     private boolean checkWin(int dot) {
         char c = (char) dot;
-        if (field[0][0] == c && field[0][1] == c && field[0][2] == c) return true;
-        if (field[1][0] == c && field[1][1] == c && field[1][2] == c) return true;
-        if (field[2][0] == c && field[2][1] == c && field[2][2] == c) return true;
-
-        if (field[0][0] == c && field[1][0] == c && field[2][0] == c) return true;
-        if (field[0][1] == c && field[1][1] == c && field[2][1] == c) return true;
-        if (field[0][2] == c && field[1][2] == c && field[2][2] == c) return true;
-
-        if (field[0][0] == c && field[1][1] == c && field[2][2] == c) return true;
-        if (field[0][2] == c && field[1][1] == c && field[2][0] == c) return true;
-
+        for (int x = 0; x < fieldSizeX; x++) {
+            for (int y = 0; y < fieldSizeY; y++) {
+                if (checkWin1(c, x, y)) return true;
+                else if (checkWin2(c, x, y)) return true;
+                else if (checkWin3(c, x, y)) return true;
+                else if (checkWin4(c, x, y)) return true;
+            }
+        }
+//        if (field[0][0] == c && field[0][1] == c && field[0][2] == c) return true;
+//        if (field[1][0] == c && field[1][1] == c && field[1][2] == c) return true;
+//        if (field[2][0] == c && field[2][1] == c && field[2][2] == c) return true;
+//
+//        if (field[0][0] == c && field[1][0] == c && field[2][0] == c) return true;
+//        if (field[0][1] == c && field[1][1] == c && field[2][1] == c) return true;
+//        if (field[0][2] == c && field[1][2] == c && field[2][2] == c) return true;
+//
+//        if (field[0][0] == c && field[1][1] == c && field[2][2] == c) return true;
+//        if (field[0][2] == c && field[1][1] == c && field[2][0] == c) return true;
         return false;
+    }
+
+    private boolean checkWin1(char c, int x, int y) {
+        boolean result = false;
+        if (field[x][y] == c && (fieldSizeY - y >= counter)) {
+            int check = 1;
+            for (int y1 = y + 1; y1 < fieldSizeY; y1++) {
+                if (field[x][y1] == c) {
+                    check++;
+                } else break;
+            }
+            if (check == counter) {
+                result = true;
+            }
+        }
+        return result;
+    }
+
+    private boolean checkWin2(char c, int x, int y) {
+        boolean result = false;
+        if (field[x][y] == c && (fieldSizeX - x >= counter)) {
+            int check = 1;
+            for (int x1 = x + 1; x1 < fieldSizeY; x1++) {
+                if (field[x1][y] == c) {
+                    check++;
+                } else break;
+            }
+            if (check == counter) {
+                result = true;
+            }
+        }
+        return result;
+    }
+
+    private boolean checkWin3(char c, int x, int y) {
+        boolean result = false;
+        if (field[x][y] == c && (x + counter <= fieldSizeX) && (y + counter <= fieldSizeY)) {
+            int check = 1;
+            for (int z = 1; z < fieldSizeX - 1; z++) {
+                if (field[x + z][y + z] == c) {
+                    check++;
+                } else break;
+            }
+            if (check == counter) {
+                result = true;
+            }
+        }
+        return result;
+    }
+
+    private boolean checkWin4(char c, int x, int y) {
+        boolean result = false;
+        if (field[x][y] == c && (x + counter <= fieldSizeX) && (y - (counter - 1) >= 0)) {
+            int check = 1;
+            for (int z = 1; z < fieldSizeX - 1; z++) {
+                System.out.println(x + z);
+                if (field[x + z][y - z] == c) {
+                    check++;
+                } else break;
+            }
+            if (check == counter) {
+                result = true;
+            }
+        }
+        return result;
     }
 
     private boolean isMapFull() {
